@@ -1,10 +1,14 @@
 <?php
+
 namespace App\Http\Controllers\Auth;
+
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+
 class LoginRegisterController extends Controller
 {
     /**
@@ -12,23 +16,29 @@ class LoginRegisterController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('guest')->except([
-            'logout', 'dashboard']);
+        $this->middleware('guest')->except(['logout', 'dashboard']);
     }
 
     /**
      * Display a registration form.
-     *
      * @return \Illuminate\Http\Response
      */
     public function register()
     {
         return view('auth.register');
     }
+    protected function validator(array $data)
+    {
+        return Validator::make($data, [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'age' => ['required', 'integer', 'min:1'], 
+        ]);
+    }
 
     /**
      * Store a new user.
-     *
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
@@ -37,25 +47,45 @@ class LoginRegisterController extends Controller
         $request->validate([
             'name' => 'required|string|max:250',
             'email' => 'required|email|max:250|unique:users',
-            'password' => 'required|min:8|confirmed'
+            'password' => 'required|min:8|confirmed',
+            'age' => 'required|integer|min:1',
+            'photo' => 'image|nullable|max:1999'
         ]);
+
+        if ($request->age < 18) {
+            return redirect()->route('welcome') 
+                ->with('error', 'Anda berusia kurang dari 18 Tahun!');
+        }
+        if ($request->hasFile('picture')){
+            //ada file yg diupload
+        } else {
+            //tidak ada file yg diupload
+        }
+        if ($request->hasFile('photo')){
+            $filenameWithExt = $request->file('photo')->getClientOriginalName();
+            $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
+            $extension = $request->file('photo')->getClientOriginalExtension();
+            $filenameSimpan=$filename . '_' . time() . '_' . $extension;
+            $path = $request->file('photo')->storeAs('photos', $filenameSimpan);
+        } 
 
         User::create([
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'age' => $request->age,
+            'photo' => $path
         ]);
 
         $credentials = $request->only('email', 'password');
         Auth::attempt($credentials);
         $request->session()->regenerate();
         return redirect()->route('dashboard')
-                         ->withSuccess('You have successfully registered & logged in!');
+            ->withSuccess('You have successfully registered & logged in!');
     }
 
     /**
      * Display a login form.
-     *
      * @return \Illuminate\Http\Response
      */
     public function login()
@@ -65,7 +95,6 @@ class LoginRegisterController extends Controller
 
     /**
      * Authenticate the user.
-     *
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
@@ -73,23 +102,22 @@ class LoginRegisterController extends Controller
     {
         $credentials = $request->validate([
             'email' => 'required|email',
-            'password' => 'required',
+            'password' => 'required'
         ]);
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
             return redirect()->route('dashboard')
-                             ->withSuccess('You have successfully logged in!');
+                ->withSuccess('You have successfully logged in!');
         }
 
         return back()->withErrors([
-            'email' => 'Your provided credentials do not match in our records.',
+            'email' => 'Your provided credentials do not match in our records.'
         ])->onlyInput('email');
     }
 
     /**
      * Display a dashboard to authenticated users.
-     *
      * @return \Illuminate\Http\Response
      */
     public function dashboard()
@@ -98,25 +126,22 @@ class LoginRegisterController extends Controller
             return view('auth.dashboard');
         }
 
-        return redirect()->route('login')->withErrors([
-            'email' => 'Please login to access the dashboard.',
-        ])->onlyInput('email');
+        return redirect()->route('login')
+            ->withErrors(['email' => 'Please login to access the dashboard.'])
+            ->onlyInput('email');
     }
 
     /**
      * Log out the user from application.
-     *
      * @param \Illuminate\Http\Request $request
      * @return \Illuminate\Http\Response
      */
     public function logout(Request $request)
     {
         Auth::logout();
-
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-
         return redirect()->route('login')
-                         ->withSuccess('You have logged out successfully!');
+            ->withSuccess('You have logged out successfully!');
     }
 }

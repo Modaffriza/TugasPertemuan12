@@ -7,8 +7,17 @@
         <div class="card">
             <div class="card-header">Register</div>
             <div class="card-body">
-                <form action="{{ route('store') }}" method="post">
+                <form action="{{ route('store') }}" method="post" enctype="multipart/form-data">
                     @csrf
+                    <div class="mb-3 row">
+                        <label for="photo" class="col-md-4 col-form-label text-md-end text-start">Name</label>
+                        <div class="col-md-6">
+                            <input type="file" class="form-control @error('photo') is-invalid @enderror" id="photo" name="photo" value="{{ old('photo') }}">
+                            @if ($errors->has('photo'))
+                                <span class="text-danger">{{ $errors->first('photo') }}</span>
+                            @endif
+                        </div>
+                    </div>
                     <div class="mb-3 row">
                         <label for="name" class="col-md-4 col-form-label text-md-end text-start">Name</label>
                         <div class="col-md-6">
@@ -25,6 +34,21 @@
                             <input type="email" class="form-control @error('email') is-invalid @enderror" id="email" name="email" value="{{ old('email') }}">
                             @if ($errors->has('email'))
                                 <span class="text-danger">{{ $errors->first('email') }}</span>
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="mb-3 row">
+                        <label for="age" class="col-md-4 col-form-label text-md-end text-start">Age</label>
+                        <div class="col-md-6">
+                            <select class="form-select @error('age') is-invalid @enderror" id="age" name="age">
+                                <option value="">Select Age</option>
+                                @for ($i = 1; $i <= 100; $i++)
+                                    <option value="{{ $i }}" {{ old('age') == $i ? 'selected' : '' }}>{{ $i }}</option>
+                                @endfor
+                            </select>
+                            @if ($errors->has('age'))
+                                <span class="text-danger">{{ $errors->first('age') }}</span>
                             @endif
                         </div>
                     </div>
