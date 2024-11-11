@@ -4,11 +4,14 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Auth\LoginRegisterController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\GalleryController;
 
 // Terapkan middleware pada route 'restricted'
 Route::get('restricted', function () {
-    return redirect()->route('dashboard')->withSuccess("Anda berusia lebih dari 18 tahun!");
+    return redirect()->route('dashboard')->with('success', 'Anda berusia lebih dari 18 tahun!');
 })->middleware('checkage');
+
+
 
 // Ubah route index dengan menambahkan nama routingnya
 Route::get('/', function () {
@@ -16,6 +19,9 @@ Route::get('/', function () {
 })->name('welcome');
 
 Route::resource('users', UserController::class);
+Route::resource('gallery', GalleryController::class);
+Route::delete('/gallery/{id}', [GalleryController::class, 'destroy'])->name('gallery.destroy');
+Route::put('/gallery/{id}', [GalleryController::class, 'update'])->name('gallery.update');
 
 
 
