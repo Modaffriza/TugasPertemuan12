@@ -5,12 +5,18 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginRegisterController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\GalleryController;
+use App\Http\Controllers\SendEmailController;
+
+Route::get('/send-email', [SendEmailController::class,
+'index'])->name ('kirim-email');
 
 // Terapkan middleware pada route 'restricted'
 Route::get('restricted', function () {
     return redirect()->route('dashboard')->with('success', 'Anda berusia lebih dari 18 tahun!');
 })->middleware('checkage');
 
+
+Route::post('/post-email', [SendEmailController::class, 'store'])->name ('post-email');
 
 
 // Ubah route index dengan menambahkan nama routingnya

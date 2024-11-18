@@ -5,9 +5,13 @@ namespace App\Http\Controllers\Auth;
 use App\Models\User;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Mail\SendEmail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
+
 
 class LoginRegisterController extends Controller
 {
@@ -43,46 +47,54 @@ class LoginRegisterController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-    {
-        $request->validate([
-            'name' => 'required|string|max:250',
-            'email' => 'required|email|max:250|unique:users',
-            'password' => 'required|min:8|confirmed',
-            'age' => 'required|integer|min:1',
-            'photo' => 'image|nullable|max:1999'
-        ]);
+{
+    $request->validate([
+        'name' => 'required|string|max:250',
+        'email' => 'required|email|max:250|unique:users',
+        'password' => 'required|min:8|confirmed',
+        'age' => 'required|integer|min:1',
+        'photo' => 'image|nullable|max:1999',
+    ]);
 
-        if ($request->age < 18) {
-            return redirect()->route('welcome') 
-                ->with('error', 'Anda berusia kurang dari 18 Tahun!');
-        }
-        if ($request->hasFile('picture')){
-            //ada file yg diupload
-        } else {
-            //tidak ada file yg diupload
-        }
-        if ($request->hasFile('photo')){
-            $filenameWithExt = $request->file('photo')->getClientOriginalName();
-            $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
-            $extension = $request->file('photo')->getClientOriginalExtension();
-            $filenameSimpan=$filename . '_' . time() . '_' . $extension;
-            $path = $request->file('photo')->storeAs('photos', $filenameSimpan);
-        } 
-
-        User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'age' => $request->age,
-            'photo' => $path
-        ]);
-
-        $credentials = $request->only('email', 'password');
-        Auth::attempt($credentials);
-        $request->session()->regenerate();
-        return redirect()->route('dashboard')
-            ->withSuccess('You have successfully registered & logged in!');
+    if ($request->age < 18) {
+        return redirect()->route('welcome') 
+            ->with('error', 'Anda berusia kurang dari 18 Tahun!');
     }
+
+    $path = null;
+    if ($request->hasFile('photo')) {
+        $filenameWithExt = $request->file('photo')->getClientOriginalName();
+        $filename = pathinfo($filenameWithExt, PATHINFO_FILENAME);
+        $extension = $request->file('photo')->getClientOriginalExtension();
+        $path = $request->file('photo')->storeAs('photos', $filename . '_' . time() . '.' . $extension);
+    }
+
+    $user = User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => Hash::make($request->password),
+        'age' => $request->age,
+        'photo' => $path,
+    ]);
+
+    $emailData = [
+        'subject' => 'Selamat! Akun Anda Telah Berhasil Didaftarkan',
+        'name' => $user->name,
+        'email' => $user->email,
+        'date' => now()->format('d-m-Y H:i:s'),
+    ];
+
+    // Kirim email
+    Mail::to($user->email)->send(new SendEmail($emailData));
+
+    // Login otomatis
+    Auth::login($user);
+    $request->session()->regenerate();
+
+    return redirect()->route('dashboard')
+        ->with('success', 'Pendaftaran berhasil! Anda telah login.');
+}
+
 
     /**
      * Display a login form.
