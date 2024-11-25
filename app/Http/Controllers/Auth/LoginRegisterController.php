@@ -47,7 +47,7 @@ class LoginRegisterController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(Request $request)
-{
+    {
     $request->validate([
         'name' => 'required|string|max:250',
         'email' => 'required|email|max:250|unique:users',
@@ -84,10 +84,10 @@ class LoginRegisterController extends Controller
         'date' => now()->format('d-m-Y H:i:s'),
     ];
 
-    // Kirim email
+
     Mail::to($user->email)->send(new SendEmail($emailData));
 
-    // Login otomatis
+
     Auth::login($user);
     $request->session()->regenerate();
 

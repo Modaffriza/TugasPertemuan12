@@ -9,39 +9,58 @@
                 <a href="{{ route('gallery.create') }}" class="btn btn-sm btn-success">Create</a>
             </div>
             <div class="card-body">
-                <div class="row">
-                    @if (count($galleries) > 0)
-                        @foreach ($galleries as $gallery)
-                            <div class="col-sm-2">
-                                <div>
-                                    <a class="example-image-link" href="{{ asset('storage/posts_image/'.$gallery->picture) }}" data-lightbox="roadtrip" data-title="{{ $gallery->description }}">
-                                        <img class="example-image img-fluid mb-2" src="{{ asset('storage/posts_image/'.$gallery->picture) }}" alt="Image">
-                                    </a>
-                                    <div class="mt-2">
-                                        <!-- Tombol Edit -->
-                                        <a href="{{ route('gallery.edit', $gallery->id) }}" class="btn btn-sm btn-primary">Edit</a>
-                                        
-                                        <!-- Tombol Hapus -->
-                                        <form action="{{ route('gallery.destroy', $gallery->id) }}" method="POST" style="display:inline;">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus gambar ini?')">Delete</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
-                    @else
-                        <div class="col-sm-12 text-center">
-                            <h3>Tidak ada data.</h3>
-                        </div>
-                    @endif
-                </div>
-                <div class="d-flex">
-                    {{ $galleries->links() }}
+                <div id="gallery" class="row">
+                    <!-- Galeri akan dimuat secara dinamis -->
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const galleryContainer = document.getElementById('gallery');
+
+        // Ambil data dari endpoint API
+        fetch('/api/gallery')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const galleries = data.data;
+
+                    if (galleries.length > 0) {
+                        galleries.forEach(gallery => {
+                            const col = document.createElement('div');
+                            col.classList.add('col-sm-2');
+
+                            col.innerHTML = `
+                                <div>
+                                    <a class="example-image-link" href="/storage/posts_image/${gallery.picture}" data-lightbox="roadtrip" data-title="${gallery.description}">
+                                        <img class="example-image img-fluid mb-2" src="/storage/posts_image/${gallery.picture}" alt="${gallery.title}">
+                                    </a>
+                                    <div class="mt-2">
+                                        <a href="/gallery/${gallery.id}/edit" class="btn btn-sm btn-primary">Edit</a>
+                                        <form action="/gallery/${gallery.id}" method="POST" style="display:inline;">
+                                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                            <input type="hidden" name="_method" value="DELETE">
+                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Yakin ingin menghapus gambar ini?')">Delete</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            `;
+                            galleryContainer.appendChild(col);
+                        });
+                    } else {
+                        galleryContainer.innerHTML = `<div class="col-sm-12 text-center"><h3>Tidak ada data.</h3></div>`;
+                    }
+                } else {
+                    galleryContainer.innerHTML = `<div class="col-sm-12 text-center"><h3>Gagal memuat data.</h3></div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching gallery data:', error);
+                galleryContainer.innerHTML = `<div class="col-sm-12 text-center"><h3>Error memuat data.</h3></div>`;
+            });
+    });
+</script>
 @endsection

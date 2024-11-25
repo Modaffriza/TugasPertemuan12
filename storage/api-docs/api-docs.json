@@ -1,0 +1,85 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Contoh API documentation",
+        "description": "Contoh API doc menggunakan OpenAPI/Swagger",
+        "termsOfService": "http://swagger.io/terms/",
+        "contact": {
+            "email": "choirudin.emchagmail.com"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "0.0.1"
+    },
+    "paths": {
+        "/api/greet": {
+            "get": {
+                "tags": [
+                    "Greeting"
+                ],
+                "summary": "Returns a sample API response",
+                "description": "A sample greeting to test out the API",
+                "operationId": "greet",
+                "parameters": [
+                    {
+                        "name": "firstname",
+                        "in": "query",
+                        "description": "First name of the user",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "lastname",
+                        "in": "query",
+                        "description": "Last name of the user",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful operation",
+                        "content": {
+                            "application/json": {
+                                "schema": {},
+                                "example": {
+                                    "success": true,
+                                    "message": "Berhasil memproses masukan user",
+                                    "data": {
+                                        "output": "Halo John Doe",
+                                        "firstname": "John",
+                                        "lastname": "Doe"
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Missing data",
+                        "content": {
+                            "application/json": {
+                                "schema": {},
+                                "example": {
+                                    "success": false,
+                                    "message": "Missing data"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Greeting",
+            "description": "Greeting"
+        }
+    ]
+}

@@ -11,6 +11,19 @@ class GalleryController extends Controller
     /**
      * Display a listing of the resource.
      */
+    public function apiGallery()
+{
+    $galleries = Post::where('picture', '!=', '')
+        ->whereNotNull('picture')
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    return response()->json([
+        'success' => true,
+        'data' => $galleries,
+    ]);
+}
+
 
      public function index()
      {

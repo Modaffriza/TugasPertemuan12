@@ -7,8 +7,8 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\GalleryController;
 use App\Http\Controllers\SendEmailController;
 
-Route::get('/send-email', [SendEmailController::class,
-'index'])->name ('kirim-email');
+
+Route::get('/send-email', [SendEmailController::class,'index'])->name ('kirim-email');
 
 // Terapkan middleware pada route 'restricted'
 Route::get('restricted', function () {
@@ -23,6 +23,8 @@ Route::post('/post-email', [SendEmailController::class, 'store'])->name ('post-e
 Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
+
+
 
 Route::resource('users', UserController::class);
 Route::resource('gallery', GalleryController::class);
